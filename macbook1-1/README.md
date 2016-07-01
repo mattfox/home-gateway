@@ -1,4 +1,4 @@
-Hopefully I never need to worry about this again. Installing Debian on a first-gen 32-bit Core 2 Macbook is not something to be undertaken lightly.
+Hopefully I never need to worry about this again. Installing Debian on a first-gen 32-bit Core Duo Macbook is not something to be undertaken lightly.
 
 For installing on MacBook1,1, refer to:
 * http://www.makeuseof.com/tag/how-to-boot-a-linux-live-usb-stick-on-your-mac/
