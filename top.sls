@@ -1,3 +1,5 @@
+# TODO: consider combining router, dnsmasq, and radvd
+
 base:
   '*':
     - common
