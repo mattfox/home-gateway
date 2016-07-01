@@ -6,7 +6,9 @@ mkdir --parent /etc/salt/
 mkdir --parent /var/log/salt/minion
 mkdir --parent /var/cache/salt/minion/
 
-echo 'file_client: local' > /etc/salt/minion
+echo '''file_client: local
+backup_mode: minion
+''' > /etc/salt/minion
 cp /etc/hostname /etc/salt/minion_id
 
 # Salt expects its configuration at /srv/salt

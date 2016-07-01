@@ -1,0 +1,60 @@
+#!/bin/sh
+# MacBook1,1 stuff
+
+### BEGIN INIT INFO
+# Provides:          macbook
+# Required-Start:    $local_fs $network pommed
+# Required-Stop:     $local_fs $network pommed
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop MacBook related stuff
+### END INIT INFO
+
+NAME="macbook"
+INITIAL_BACKLIGHT_BRIGHNESS="0"
+test -f /etc/default/macbook && . /etc/default/macbook
+
+start () {
+    log_begin_msg "Starting $NAME"
+    remove 2> /dev/null # Stop everything, but ignore errors
+
+    echo $INITIAL_BACKLIGHT_BRIGHNESS > /sys/class/backlight/intel_backlight/brightness
+    modprobe cpufreq_ondemand
+
+    log_end_msg 0
+}
+stop () {
+    log_begin_msg "Stopping $NAME"
+    remove
+    log_end_msg 0
+}
+remove () {
+    true
+}
+status () {
+    echo Backlight brightness: `cat /sys/class/backlight/intel_backlight/brightness`
+    echo Lid `cat /proc/acpi/button/lid/LID0/state`
+}
+
+test -f /lib/lsb/init-functions && . /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|force-reload)
+        stop
+        start
+        ;;
+    status)
+        status
+        exit 0
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload|status}"
+        exit 1
+        ;;
+esac
