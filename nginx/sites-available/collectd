@@ -1,0 +1,25 @@
+server {
+  listen   80;
+#  listen   [::]:80 ipv6only=on;
+
+  access_log /var/log/nginx/collectd.tansen.lan.access.log;
+  error_log /var/log/nginx/collectd.tansen.lan.error.log;
+  server_name collectd.tansen.lan;
+
+  root /usr/share/doc/collectd-core/examples/collection3;
+  index bin/index.cgi;
+  
+  location /share {
+    alias /usr/share/doc/collectd-core/examples/collection3/share;
+  }
+
+  location ~ .cgi$ {
+    root /usr/share/doc/collectd-core/examples/collection3;
+    gzip off;
+    fastcgi_pass unix:/var/run/fcgiwrap.socket;
+    fastcgi_index index.cgi;
+    include /etc/nginx/fastcgi_params;
+    fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+  }
+}

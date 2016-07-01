@@ -1,0 +1,18 @@
+server {
+  listen   80 default_server;
+  listen   [::]:80 default_server ipv6only=on;
+
+  access_log /var/log/nginx/tiger.tansen.lan.access.log;
+  error_log /var/log/nginx/tiger.tansen.lan.error.log;
+  root /usr/local/share/www;
+  index index.html index.htm;
+  server_name tiger.tansen.lan;
+
+  location /status {
+    stub_status on;
+    access_log off;    
+    allow 127.0.0.1;
+    allow ::1;
+    deny all;
+  }
+}

@@ -5,6 +5,7 @@ collectd:
 collectd-dependencies:
   pkg.installed:
     - pkgs:
+      - fcgiwrap
       - libconfig-general-perl
       - librrds-perl
       - libregexp-common-perl

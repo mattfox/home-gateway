@@ -1,0 +1,131 @@
+#!/bin/sh
+# Firewall and NAT iptables.
+
+### BEGIN INIT INFO
+# Provides:          firewall
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop firewall
+### END INIT INFO
+
+NAME="firewall"
+LAN_IF="eth0"
+LAN_IN="lan_in"
+LAN_IP="192.168.1.1"
+LAN_NET="192.168.1.0/24"
+LAN_IP6="2001:470:b:304::1"
+LAN_NET6="2001:470:b:304::0/64"
+WAN_IF="eth0.3"
+WAN_IN="wan_in"
+WAN_FWD="wan_fwd"
+WWW101_HOST="www101.tansen.ca"
+COLLECTD_PORT=25826
+test -f /etc/default/firewall && . /etc/default/firewall
+
+start () {
+    log_begin_msg "Starting $NAME"
+    remove 2> /dev/null # Stop everything, but ignore errors
+
+    # Firewall- input
+    # Local network
+    iptables -N $LAN_IN
+    iptables -I INPUT -i $LAN_IF -j $LAN_IN
+    iptables -A $LAN_IN -j ACCEPT # Accept everything from LAN
+
+    ip6tables -N $LAN_IN
+    ip6tables -I INPUT -i $LAN_IF -j $LAN_IN
+    ip6tables -A $LAN_IN -j ACCEPT # Accept everything from LAN
+
+    # Internet
+    iptables -N $WAN_IN
+    iptables -I INPUT -i $WAN_IF -j $WAN_IN
+    iptables -A $WAN_IN -p ICMP -j ACCEPT
+    iptables -A $WAN_IN -p tcp --dport ssh -j ACCEPT
+    iptables -A $WAN_IN -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A $WAN_IN -s ${WWW101_HOST} -p udp --dport ${COLLECTD_PORT} -j ACCEPT
+    iptables -A $WAN_IN -j REJECT
+
+    ip6tables -N $WAN_IN
+    ip6tables -I INPUT -i $WAN_IF -j $WAN_IN
+    ip6tables -A $WAN_IN -p ICMP -j ACCEPT
+    ip6tables -A $WAN_IN -p tcp --dport ssh -j ACCEPT
+    ip6tables -A $WAN_IN -m state --state ESTABLISHED,RELATED -j ACCEPT
+    #ip6tables -A $WAN_IN -s ${WWW101_HOST} -p udp --dport ${COLLECTD_PORT} -j ACCEPT
+    ip6tables -A $WAN_IN -j REJECT
+
+    # Firewall- forward
+    iptables -N $WAN_FWD
+    iptables -I FORWARD -i $WAN_IF -j $WAN_FWD
+    iptables -A $WAN_FWD -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A $WAN_FWD -j REJECT
+
+    ip6tables -N $WAN_FWD
+    ip6tables -I FORWARD -i $WAN_IF -j $WAN_FWD
+    ip6tables -A $WAN_FWD -m state --state ESTABLISHED,RELATED -j ACCEPT
+    ip6tables -A $WAN_FWD -j REJECT
+
+    # NATing
+    iptables -t nat -I POSTROUTING -o $WAN_IF -s $LAN_NET -j MASQUERADE
+
+    log_end_msg 0
+}
+stop () {
+    log_begin_msg "Stopping $NAME"
+    remove
+    log_end_msg 0
+}
+remove () {
+    iptables -D INPUT -i $LAN_IF -j $LAN_IN
+    iptables -F $LAN_IN
+    iptables -X $LAN_IN
+
+    ip6tables -D INPUT -i $LAN_IF -j $LAN_IN
+    ip6tables -F $LAN_IN
+    ip6tables -X $LAN_IN
+
+    iptables -D INPUT -i $WAN_IF -j $WAN_IN
+    iptables -F $WAN_IN
+    iptables -X $WAN_IN
+
+    ip6tables -D INPUT -i $WAN_IF -j $WAN_IN
+    ip6tables -F $WAN_IN
+    ip6tables -X $WAN_IN
+
+    iptables -D FORWARD -i $WAN_IF -j $WAN_FWD
+    iptables -F $WAN_FWD
+    iptables -X $WAN_FWD
+
+    ip6tables -D FORWARD -i $WAN_IF -j $WAN_FWD
+    ip6tables -F $WAN_FWD
+    ip6tables -X $WAN_FWD
+
+    iptables -t nat -D POSTROUTING -o $WAN_IF -s $LAN_NET -j MASQUERADE
+}
+status () {
+    iptables -L $INPUT -nv
+}
+
+test -f /lib/lsb/init-functions && . /lib/lsb/init-functions
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|force-reload)
+        stop
+        start
+        ;;
+    status)
+        status
+        exit 0
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload|status}"
+        exit 1
+        ;;
+esac

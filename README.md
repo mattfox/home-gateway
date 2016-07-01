@@ -22,7 +22,7 @@ Get the code:
 git clone git@github.com:mattfox/home-gateway.git
 ```
 
-Configure the system a little bit:
+Configure salt minion:
 
 ```
 cd home-gateway
