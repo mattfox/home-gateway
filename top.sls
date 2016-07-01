@@ -1,0 +1,5 @@
+base:
+  '*':
+    - sysctl
+    - network
+    - dnsmasq

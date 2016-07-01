@@ -1,0 +1,24 @@
+auto lo
+iface lo inet loopback
+
+allow-hotplug eth0
+iface eth0 inet static
+    address 192.168.1.1
+    netmask 255.255.255.0
+
+iface eth0 inet6 static
+    address 2001:470:b:304::1
+    netmask 64
+
+auto eth0.3
+iface eth0.3 inet dhcp
+
+auto he-ipv6
+iface he-ipv6 inet6 v4tunnel
+        address 2001:470:a:304::2
+        netmask 64
+        endpoint 216.218.226.238
+        local 70.78.20.162
+        ttl 255
+        gateway 2001:470:a:304::1
+

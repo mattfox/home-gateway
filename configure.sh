@@ -8,3 +8,6 @@ mkdir --parent /var/cache/salt/minion/
 
 echo 'file_client: local' > /etc/salt/minion
 cp /etc/hostname /etc/salt/minion_id
+
+# Salt expects its configuration at /srv/salt
+ln --symbolic `pwd` /srv/salt
